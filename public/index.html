@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deck Game</title>
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f7f7f7;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        main {
+            padding: 20px;
+        }
+
+        .button-container {
+            margin: 20px 0;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:disabled {
+            background-color: #a5d6a7;
+            cursor: not-allowed;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #45a049;
+        }
+
+        .card {
+            display: inline-block;
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px;
+            text-align: center;
+            width: 120px;
+            height: 180px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .card .rank {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .card .suit {
+            font-size: 24px;
+            color: #555;
+        }
+
+        #deckContainer, #drawnCard {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .error {
+            color: red;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Deck Game</h1>
+    </header>
+    <main>
+        <div class="button-container">
+            <button id="createDeck">Create New Deck</button>
+            <button id="shuffleDeck" disabled>Shuffle Deck</button>
+            <button id="getDeck" disabled>Show Deck</button>
+            <button id="drawCard" disabled>Draw Card</button>
+        </div>
+        <div id="deckContainer"></div>
+        <div id="drawnCard"></div>
+        <div class="error" id="error"></div>
+    </main>
+    <script>
+        let deckId = null;
+
+        async function handleCreateDeck() {
+            try {
+                const response = await fetch('/temp/deck', { method: 'POST' });
+                if (!response.ok) throw new Error(`Failed to create deck: ${response.status}`);
+                const data = await response.json();
+                deckId = data.deckId;
+
+                document.getElementById('shuffleDeck').disabled = false;
+                document.getElementById('getDeck').disabled = false;
+                document.getElementById('drawCard').disabled = false;
+                document.getElementById('error').textContent = '';
+                alert(`Deck created with ID: ${deckId}`);
+            } catch (error) {
+                document.getElementById('error').textContent = `Error creating deck: ${error.message}`;
+            }
+        }
+
+        async function handleShuffleDeck() {
+            try {
+                const response = await fetch(`/temp/deck/shuffle/${deckId}`, { method: 'PATCH' });
+                if (!response.ok) throw new Error(`Failed to shuffle deck: ${response.status}`);
+                document.getElementById('error').textContent = '';
+                alert('Deck shuffled successfully!');
+            } catch (error) {
+                document.getElementById('error').textContent = `Error shuffling deck: ${error.message}`;
+            }
+        }
+
+        async function handleGetDeck() {
+            try {
+                const response = await fetch(`/temp/deck/${deckId}`);
+                if (!response.ok) throw new Error(`Failed to get deck: ${response.status}`);
+                const data = await response.json();
+
+                const deckContainer = document.getElementById('deckContainer');
+                deckContainer.innerHTML = '';
+                data.cards.forEach(card => {
+                    const cardDiv = document.createElement('div');
+                    cardDiv.className = 'card';
+                    cardDiv.innerHTML = `<div class="rank">${card.rank}</div><div class="suit">${card.suit}</div>`;
+                    deckContainer.appendChild(cardDiv);
+                });
+                document.getElementById('error').textContent = '';
+            } catch (error) {
+                document.getElementById('error').textContent = `Error retrieving deck: ${error.message}`;
+            }
+        }
+
+        async function handleDrawCard() {
+            try {
+                const response = await fetch(`/temp/deck/${deckId}/card`);
+                if (!response.ok) throw new Error(`Failed to draw card: ${response.status}`);
+                const data = await response.json();
+
+                const card = data.card;
+                const drawnCard = document.getElementById('drawnCard');
+                drawnCard.innerHTML = '';
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'card';
+                cardDiv.innerHTML = `<div class="rank">${card.rank}</div><div class="suit">${card.suit}</div>`;
+                drawnCard.appendChild(cardDiv);
+
+                document.getElementById('error').textContent = '';
+            } catch (error) {
+                document.getElementById('error').textContent = `Error drawing card: ${error.message}`;
+            }
+        }
+
+        document.getElementById('createDeck').addEventListener('click', handleCreateDeck);
+        document.getElementById('shuffleDeck').addEventListener('click', handleShuffleDeck);
+        document.getElementById('getDeck').addEventListener('click', handleGetDeck);
+        document.getElementById('drawCard').addEventListener('click', handleDrawCard);
+    </script>
+</body>
+</html>

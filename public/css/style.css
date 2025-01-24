@@ -1,0 +1,26 @@
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7; /* خلفية خفيفة */
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #4CAF50; /* لون أخضر */
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        button {
+            background-color: #4CAF50; /* لون أخضر */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+  
